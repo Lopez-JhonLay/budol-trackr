@@ -1,7 +1,7 @@
 import { createLoginStyles } from '@/assets/styles/login.styles';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuthActions } from '@convex-dev/auth/react';
-import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
@@ -16,13 +16,12 @@ import {
 const LoginScreen = () => {
   const { signIn } = useAuthActions();
 
-  const router = useRouter();
-
   const { colors } = useTheme();
   const styles = createLoginStyles(colors);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLogin, setIsLogin] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -42,10 +41,6 @@ const LoginScreen = () => {
         password,
         flow: 'signIn',
       });
-
-      console.log('Login successful!');
-
-      router.replace('/(tabs)');
     } catch (error) {
       if (error instanceof Error) {
         console.error('Login failed:', error.message);
@@ -76,16 +71,26 @@ const LoginScreen = () => {
             autoCapitalize="none"
           />
 
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            placeholderTextColor={colors.textMuted}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={[styles.input, styles.passwordInput]}
+              placeholder="Password"
+              placeholderTextColor={colors.textMuted}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+            />
 
-          <TouchableOpacity style={styles.button} onPress={handleLogin}>
+            <TouchableOpacity style={styles.showPasswordButton} onPress={() => setShowPassword((prev) => !prev)}>
+              <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={22} color={colors.primary} />
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            style={[styles.button, (!email || !password) && styles.buttonDisabled]}
+            onPress={handleLogin}
+            disabled={!email || !password || loading}
+          >
             {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Sign In</Text>}
           </TouchableOpacity>
 

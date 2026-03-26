@@ -37,6 +37,31 @@ export const createLoginStyles = (colors: ColorScheme) => {
       color: colors.text,
       borderColor: colors.border,
     },
+    passwordContainer: {
+      position: 'relative',
+      flexDirection: 'row',
+      alignItems: 'center',
+      height: 56,
+      borderRadius: 12,
+      backgroundColor: colors.backgrounds.input,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    passwordInput: {
+      flex: 1,
+      fontSize: 16,
+      color: colors.text,
+      paddingRight: 40,
+      borderWidth: 0,
+      height: '100%',
+    },
+    showPasswordButton: {
+      position: 'absolute',
+      right: 16,
+      top: 0,
+      bottom: 0,
+      justifyContent: 'center',
+    },
     button: {
       height: 56,
       borderRadius: 12,
@@ -44,6 +69,9 @@ export const createLoginStyles = (colors: ColorScheme) => {
       alignItems: 'center',
       marginTop: 8,
       backgroundColor: colors.primary,
+    },
+    buttonDisabled: {
+      opacity: 0.5,
     },
     buttonText: {
       color: '#FFFFFF',
