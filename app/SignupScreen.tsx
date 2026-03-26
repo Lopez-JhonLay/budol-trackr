@@ -3,7 +3,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useAuthActions } from '@convex-dev/auth/react';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -14,23 +14,32 @@ import {
   View,
 } from 'react-native';
 
-const LoginScreen = () => {
+const SignupScreen = () => {
   const { signIn } = useAuthActions();
-
   const router = useRouter();
 
   const { colors } = useTheme();
   const styles = createLoginStyles(colors);
 
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleLogin = async () => {
-    if (!email || !password) {
+  const isFormValid = username && email && password && confirmPassword;
+
+  const handleSignup = async () => {
+    if (!isFormValid) {
       setError('Please fill in all fields.');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
       return;
     }
 
@@ -41,10 +50,15 @@ const LoginScreen = () => {
       await signIn('password', {
         email,
         password,
-        flow: 'signIn',
+        name: username,
+        flow: 'signUp',
       });
     } catch (error) {
-      setError('Invalid email or password.');
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError('An unexpected error occurred.');
+      }
     } finally {
       setLoading(false);
     }
@@ -53,12 +67,21 @@ const LoginScreen = () => {
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <View style={styles.content}>
-        <Text style={styles.title}>Welcome Back</Text>
-        <Text style={styles.subtitle}>Sign in to continue</Text>
+        <Text style={styles.title}>Create Account</Text>
+        <Text style={styles.subtitle}>Sign up to get started</Text>
 
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
         <View style={styles.form}>
+          <TextInput
+            style={styles.input}
+            placeholder="Username"
+            placeholderTextColor={colors.textMuted}
+            value={username}
+            onChangeText={setUsername}
+            autoCapitalize="none"
+          />
+
           <TextInput
             style={styles.input}
             placeholder="Email"
@@ -84,16 +107,35 @@ const LoginScreen = () => {
             </TouchableOpacity>
           </View>
 
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={[styles.input, styles.passwordInput]}
+              placeholder="Confirm Password"
+              placeholderTextColor={colors.textMuted}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry={!showConfirmPassword}
+            />
+
+            <TouchableOpacity style={styles.showPasswordButton} onPress={() => setShowConfirmPassword((prev) => !prev)}>
+              <Ionicons
+                name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
+                size={22}
+                color={colors.primary}
+              />
+            </TouchableOpacity>
+          </View>
+
           <TouchableOpacity
-            style={[styles.button, (!email || !password) && styles.buttonDisabled]}
-            onPress={handleLogin}
-            disabled={!email || !password || loading}
+            style={[styles.button, !isFormValid && styles.buttonDisabled]}
+            onPress={handleSignup}
+            disabled={!isFormValid || loading}
           >
-            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Sign In</Text>}
+            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Sign Up</Text>}
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.toggleButton} onPress={() => router.push('/SignupScreen')}>
-            <Text style={styles.toggleButtonText}>Don't have an account? Sign Up</Text>
+          <TouchableOpacity style={styles.toggleButton} onPress={() => router.back()}>
+            <Text style={styles.toggleButtonText}>Already have an account? Sign In</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -101,4 +143,4 @@ const LoginScreen = () => {
   );
 };
 
-export default LoginScreen;
+export default SignupScreen;

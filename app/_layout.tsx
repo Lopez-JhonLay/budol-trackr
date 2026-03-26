@@ -38,6 +38,7 @@ function InitialLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="LoginScreen" />
+      <Stack.Screen name="SignupScreen" />
       <Stack.Screen name="(tabs)" />
     </Stack>
   );
