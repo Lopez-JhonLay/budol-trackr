@@ -5,9 +5,10 @@ import { api } from '@/convex/_generated/api';
 import { useTheme } from '@/hooks/useTheme';
 import { getFormattedDate, getGreeting } from '@/lib/utils';
 import { useAuthActions } from '@convex-dev/auth/react';
+import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from 'convex/react';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
@@ -37,6 +38,13 @@ export default function HomeScreen() {
 
         <RecentActivity />
       </ScrollView>
+
+      <TouchableOpacity style={styles.fab} activeOpacity={0.8}>
+        <LinearGradient colors={colors.gradients.primary} style={styles.fabGradient}>
+          <Ionicons name="add" size={20} color="#fff" style={{ marginRight: 6 }} />
+          <Text style={styles.fabText}>Expense</Text>
+        </LinearGradient>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }

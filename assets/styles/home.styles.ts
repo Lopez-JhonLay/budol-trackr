@@ -206,4 +206,22 @@ export const createHomeStyles = (colors: ColorScheme) =>
       fontSize: 16,
       fontWeight: '600',
     },
+    fab: {
+      position: 'absolute',
+      bottom: 16,
+      right: 24,
+    },
+    fabGradient: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 46,
+      paddingVertical: 16,
+      borderRadius: 30,
+    },
+    fabText: {
+      color: '#FFFFFF',
+      fontSize: 16,
+      fontWeight: '700',
+    },
   });

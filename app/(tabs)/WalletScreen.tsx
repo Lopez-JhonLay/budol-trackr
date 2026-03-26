@@ -17,6 +17,8 @@ const WalletScreen = () => {
           <Text style={styles.title}>Wallet</Text>
         </View>
 
+        <View style={styles.accountDivider} />
+
         <LinearGradient colors={colors.gradients.surface} style={styles.netWorthCard}>
           <Text style={styles.netWorthLabel}>Total Net Worth</Text>
           <Text style={styles.netWorthAmount}>₱ 24,500.00</Text>
@@ -66,6 +68,13 @@ const WalletScreen = () => {
           <Text style={styles.accountBalanceAmount}>₱ 5,000.00</Text>
         </LinearGradient>
       </ScrollView>
+
+      <TouchableOpacity style={styles.fab} activeOpacity={0.8}>
+        <LinearGradient colors={colors.gradients.primary} style={styles.fabGradient}>
+          <Ionicons name="add" size={20} color="#fff" style={{ marginRight: 6 }} />
+          <Text style={styles.fabText}>Account</Text>
+        </LinearGradient>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 };

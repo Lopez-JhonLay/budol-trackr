@@ -12,7 +12,7 @@ export const createWalletStyles = (colors: ColorScheme) =>
       paddingTop: 20,
     },
     title: {
-      fontSize: 32,
+      fontSize: 28,
       fontWeight: '700',
       letterSpacing: -1,
       color: colors.text,
@@ -118,5 +118,23 @@ export const createWalletStyles = (colors: ColorScheme) =>
       fontWeight: '800',
       color: colors.text,
       letterSpacing: -0.5,
+    },
+    fab: {
+      position: 'absolute',
+      bottom: 16,
+      right: 24,
+    },
+    fabGradient: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 46,
+      paddingVertical: 16,
+      borderRadius: 30,
+    },
+    fabText: {
+      color: '#FFFFFF',
+      fontSize: 16,
+      fontWeight: '700',
     },
   });
