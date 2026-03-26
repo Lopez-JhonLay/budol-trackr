@@ -50,6 +50,19 @@ export const createLoginStyles = (colors: ColorScheme) => {
       fontSize: 17,
       fontWeight: '600',
     },
+    toggleButton: {
+      marginTop: 20,
+      alignItems: 'center',
+    },
+    toggleButtonText: {
+      color: '#007AFF',
+      fontSize: 14,
+    },
+    errorText: {
+      color: '#FF3B30',
+      marginBottom: 16,
+      textAlign: 'center',
+    },
   });
 
   return styles;
