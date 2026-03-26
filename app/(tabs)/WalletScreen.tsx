@@ -1,14 +1,16 @@
 import { createWalletStyles } from '@/assets/styles/wallet.styles';
+import AddAccountSheet from '@/components/AddAccountSheet';
 import { useTheme } from '@/hooks/useTheme';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import React from 'react';
+import React, { useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const WalletScreen = () => {
   const { colors } = useTheme();
   const styles = createWalletStyles(colors);
+  const [showAccountSheet, setShowAccountSheet] = useState(false);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -69,12 +71,14 @@ const WalletScreen = () => {
         </LinearGradient>
       </ScrollView>
 
-      <TouchableOpacity style={styles.fab} activeOpacity={0.8}>
+      <TouchableOpacity style={styles.fab} activeOpacity={0.8} onPress={() => setShowAccountSheet(true)}>
         <LinearGradient colors={colors.gradients.primary} style={styles.fabGradient}>
           <Ionicons name="add" size={20} color="#fff" style={{ marginRight: 6 }} />
           <Text style={styles.fabText}>Account</Text>
         </LinearGradient>
       </TouchableOpacity>
+
+      <AddAccountSheet visible={showAccountSheet} onClose={() => setShowAccountSheet(false)} />
     </SafeAreaView>
   );
 };

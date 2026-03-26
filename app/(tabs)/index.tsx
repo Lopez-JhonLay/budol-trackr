@@ -1,4 +1,5 @@
 import { createHomeStyles } from '@/assets/styles/home.styles';
+import AddExpenseSheet from '@/components/AddExpenseSheet';
 import MonthlyBudget from '@/components/MonthlyBudget';
 import RecentActivity from '@/components/RecentActivity';
 import { api } from '@/convex/_generated/api';
@@ -8,6 +9,7 @@ import { useAuthActions } from '@convex-dev/auth/react';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from 'convex/react';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -16,6 +18,7 @@ export default function HomeScreen() {
   const styles = createHomeStyles(colors);
   const { signOut } = useAuthActions();
   const user = useQuery(api.users.currentUser);
+  const [showExpenseSheet, setShowExpenseSheet] = useState(false);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -39,12 +42,14 @@ export default function HomeScreen() {
         <RecentActivity />
       </ScrollView>
 
-      <TouchableOpacity style={styles.fab} activeOpacity={0.8}>
+      <TouchableOpacity style={styles.fab} activeOpacity={0.8} onPress={() => setShowExpenseSheet(true)}>
         <LinearGradient colors={colors.gradients.primary} style={styles.fabGradient}>
           <Ionicons name="add" size={20} color="#fff" style={{ marginRight: 6 }} />
           <Text style={styles.fabText}>Expense</Text>
         </LinearGradient>
       </TouchableOpacity>
+
+      <AddExpenseSheet visible={showExpenseSheet} onClose={() => setShowExpenseSheet(false)} />
     </SafeAreaView>
   );
 }
