@@ -33,3 +33,38 @@ export const add = mutation({
     });
   },
 });
+
+export const update = mutation({
+  args: {
+    id: v.id('accounts'),
+    accountName: v.string(),
+    accountType: v.string(),
+    balance: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error('Not authenticated');
+
+    const account = await ctx.db.get(args.id);
+    if (!account || account.userId !== userId) throw new Error('Account not found');
+
+    await ctx.db.patch(args.id, {
+      accountName: args.accountName,
+      accountType: args.accountType,
+      balance: args.balance,
+    });
+  },
+});
+
+export const remove = mutation({
+  args: { id: v.id('accounts') },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error('Not authenticated');
+
+    const account = await ctx.db.get(args.id);
+    if (!account || account.userId !== userId) throw new Error('Account not found');
+
+    await ctx.db.delete(args.id);
+  },
+});

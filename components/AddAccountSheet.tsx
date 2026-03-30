@@ -1,5 +1,6 @@
 import { createAccountSheetStyles, SHEET_HEIGHT } from '@/assets/styles/account-sheet.styles';
 import { api } from '@/convex/_generated/api';
+import { Doc } from '@/convex/_generated/dataModel';
 import { useTheme } from '@/hooks/useTheme';
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation } from 'convex/react';
@@ -23,12 +24,15 @@ const ACCOUNT_TYPES = ['Cash', 'E-Wallet', 'Bank', 'Credit Card', 'Savings'];
 interface AddAccountSheetProps {
   visible: boolean;
   onClose: () => void;
+  editAccount?: Doc<'accounts'> | null;
 }
 
-export default function AddAccountSheet({ visible, onClose }: AddAccountSheetProps) {
+export default function AddAccountSheet({ visible, onClose, editAccount }: AddAccountSheetProps) {
   const { colors } = useTheme();
   const styles = createAccountSheetStyles(colors);
   const addAccount = useMutation(api.accounts.add);
+  const updateAccount = useMutation(api.accounts.update);
+  const isEditing = !!editAccount;
 
   const translateY = useSharedValue(SHEET_HEIGHT);
   const backdropOpacity = useSharedValue(0);
@@ -55,10 +59,15 @@ export default function AddAccountSheet({ visible, onClose }: AddAccountSheetPro
 
   useEffect(() => {
     if (visible) {
+      if (editAccount) {
+        setAccountName(editAccount.accountName);
+        setAccountType(editAccount.accountType);
+        setBalance(String(editAccount.balance));
+      }
       backdropOpacity.value = withTiming(1, { duration: 250 });
       translateY.value = withTiming(0, { duration: 300 });
     }
-  }, [visible, backdropOpacity, translateY]);
+  }, [visible, editAccount, backdropOpacity, translateY]);
 
   const sheetStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
@@ -70,11 +79,20 @@ export default function AddAccountSheet({ visible, onClose }: AddAccountSheetPro
 
   const handleSubmit = () => {
     if (!accountName || !accountType || !balance) return;
-    addAccount({
-      accountName,
-      accountType,
-      balance: parseFloat(balance),
-    });
+    if (isEditing) {
+      updateAccount({
+        id: editAccount!._id,
+        accountName,
+        accountType,
+        balance: parseFloat(balance),
+      });
+    } else {
+      addAccount({
+        accountName,
+        accountType,
+        balance: parseFloat(balance),
+      });
+    }
     close();
   };
 
@@ -93,7 +111,7 @@ export default function AddAccountSheet({ visible, onClose }: AddAccountSheetPro
         <View style={styles.handle} />
 
         <View style={styles.header}>
-          <Text style={styles.title}>Add Account</Text>
+          <Text style={styles.title}>{isEditing ? 'Edit Account' : 'Add Account'}</Text>
           <TouchableOpacity style={styles.closeButton} onPress={close}>
             <Ionicons name="close" size={18} color={colors.text} />
           </TouchableOpacity>
@@ -121,7 +139,7 @@ export default function AddAccountSheet({ visible, onClose }: AddAccountSheetPro
           ))}
         </View>
 
-        <Text style={styles.label}>Initial Balance</Text>
+        <Text style={styles.label}>{isEditing ? 'Balance' : 'Initial Balance'}</Text>
         <TextInput
           style={styles.input}
           placeholder="₱ 0.00"
@@ -133,7 +151,7 @@ export default function AddAccountSheet({ visible, onClose }: AddAccountSheetPro
 
         <TouchableOpacity style={styles.submitButton} activeOpacity={0.8} onPress={handleSubmit}>
           <LinearGradient colors={colors.gradients.primary} style={styles.submitGradient}>
-            <Text style={styles.submitText}>Save</Text>
+            <Text style={styles.submitText}>{isEditing ? 'Update' : 'Save'}</Text>
           </LinearGradient>
         </TouchableOpacity>
       </Animated.View>

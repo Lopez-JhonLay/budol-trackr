@@ -9,7 +9,8 @@ import { useAuthActions } from '@convex-dev/auth/react';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from 'convex/react';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -19,6 +20,14 @@ export default function HomeScreen() {
   const { signOut } = useAuthActions();
   const user = useQuery(api.users.currentUser);
   const [showExpenseSheet, setShowExpenseSheet] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setShowExpenseSheet(false);
+      };
+    }, []),
+  );
 
   return (
     <SafeAreaView style={styles.container}>
