@@ -1,6 +1,8 @@
 import { createAccountSheetStyles, SHEET_HEIGHT } from '@/assets/styles/account-sheet.styles';
+import { api } from '@/convex/_generated/api';
 import { useTheme } from '@/hooks/useTheme';
 import { Ionicons } from '@expo/vector-icons';
+import { useMutation } from 'convex/react';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback, useEffect, useState } from 'react';
 import {
@@ -26,6 +28,7 @@ interface AddAccountSheetProps {
 export default function AddAccountSheet({ visible, onClose }: AddAccountSheetProps) {
   const { colors } = useTheme();
   const styles = createAccountSheetStyles(colors);
+  const addAccount = useMutation(api.accounts.add);
 
   const translateY = useSharedValue(SHEET_HEIGHT);
   const backdropOpacity = useSharedValue(0);
@@ -67,7 +70,11 @@ export default function AddAccountSheet({ visible, onClose }: AddAccountSheetPro
 
   const handleSubmit = () => {
     if (!accountName || !accountType || !balance) return;
-    // TODO: save account to backend
+    addAccount({
+      accountName,
+      accountType,
+      balance: parseFloat(balance),
+    });
     close();
   };
 
