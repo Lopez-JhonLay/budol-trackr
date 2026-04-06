@@ -1,4 +1,5 @@
 import { createHomeStyles } from '@/assets/styles/home.styles';
+import AddBudgetSheet from '@/components/AddBudgetSheet';
 import AddExpenseSheet from '@/components/AddExpenseSheet';
 import MonthlyBudget from '@/components/MonthlyBudget';
 import RecentActivity from '@/components/RecentActivity';
@@ -20,7 +21,9 @@ export default function HomeScreen() {
   const styles = createHomeStyles(colors);
   const { signOut } = useAuthActions();
   const user = useQuery(api.users.currentUser);
+  const budgetSetting = useQuery(api.budgets.currentSetting);
   const [showExpenseSheet, setShowExpenseSheet] = useState(false);
+  const [showBudgetSheet, setShowBudgetSheet] = useState(false);
   const [fabOpen, setFabOpen] = useState(false);
   const fabScale = useSharedValue(0);
   const fabRotation = useSharedValue(0);
@@ -47,10 +50,21 @@ export default function HomeScreen() {
     transform: [{ rotate: `${fabRotation.value}deg` }],
   }));
 
+  const cycleEndsText = (() => {
+    if (!budgetSetting?.endDate) return 'No active budget cycle';
+    const endDate = new Date(budgetSetting.endDate);
+    return `Cycle ends on ${endDate.toLocaleDateString('en-PH', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    })}`;
+  })();
+
   useFocusEffect(
     useCallback(() => {
       return () => {
         setShowExpenseSheet(false);
+        setShowBudgetSheet(false);
         closeFab();
       };
     }, []),
@@ -69,11 +83,20 @@ export default function HomeScreen() {
         <View style={styles.accountDivider} />
 
         <LinearGradient colors={colors.gradients.surface} style={styles.balanceCard}>
-          <Text style={styles.balanceLabel}>Current Budget</Text>
-          <Text style={styles.balanceAmount}>₱ 24,500.00</Text>
+          <Text style={styles.balanceLabel}>{budgetSetting?.period ?? 'Monthly'} Budget</Text>
+          <Text style={styles.balanceAmount}>
+            ₱ {(budgetSetting?.amount ?? 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+          </Text>
+          <Text style={styles.balanceMeta}>{cycleEndsText}</Text>
         </LinearGradient>
 
-        <MonthlyBudget />
+        <MonthlyBudget
+          amount={budgetSetting?.amount ?? 0}
+          period={budgetSetting?.period ?? null}
+          startDate={budgetSetting?.startDate}
+          endDate={budgetSetting?.endDate}
+          items={budgetSetting?.items ?? []}
+        />
 
         <RecentActivity />
       </ScrollView>
@@ -88,7 +111,7 @@ export default function HomeScreen() {
             activeOpacity={0.8}
             onPress={() => {
               closeFab();
-              // TODO: open budget sheet
+              setShowBudgetSheet(true);
             }}
           >
             <LinearGradient colors={colors.gradients.primary} style={styles.fabGradient}>
@@ -132,6 +155,14 @@ export default function HomeScreen() {
       </View>
 
       <AddExpenseSheet visible={showExpenseSheet} onClose={() => setShowExpenseSheet(false)} />
+      <AddBudgetSheet
+        visible={showBudgetSheet}
+        onClose={() => setShowBudgetSheet(false)}
+        existingBudgetAmount={budgetSetting?.amount ?? 0}
+        existingBudgetPeriod={budgetSetting?.period ?? null}
+        existingBudgetStartDate={budgetSetting?.startDate}
+        existingBudgetEndDate={budgetSetting?.endDate}
+      />
     </SafeAreaView>
   );
 }

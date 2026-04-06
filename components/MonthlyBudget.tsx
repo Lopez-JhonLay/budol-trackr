@@ -3,44 +3,95 @@ import { useTheme } from '@/hooks/useTheme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Text, View } from 'react-native';
 
-const BUDGET_LIMIT = 20000;
-const BUDGET_SPENT = 12000;
-const BUDGET_REMAINING = BUDGET_LIMIT - BUDGET_SPENT;
-const BUDGET_PERCENT = Math.round((BUDGET_SPENT / BUDGET_LIMIT) * 100);
-const DAYS_REMAINING = 12;
+interface MonthlyBudgetProps {
+  amount: number;
+  period: 'Weekly' | 'Monthly' | null;
+  startDate?: string;
+  endDate?: string;
+  items: Array<{
+    id: string;
+    category: string;
+    amount: number;
+  }>;
+}
 
-const MonthlyBudget = () => {
+const MonthlyBudget = ({ amount, period, startDate, endDate, items }: MonthlyBudgetProps) => {
   const { colors } = useTheme();
   const styles = createHomeStyles(colors);
+  const budgetSpent = 0;
+  const budgetLimit = amount;
+  const budgetRemaining = Math.max(budgetLimit - budgetSpent, 0);
+  const budgetPercent = budgetLimit > 0 ? Math.min(Math.round((budgetSpent / budgetLimit) * 100), 100) : 0;
+
+  const computedDaysRemaining = (() => {
+    if (!startDate || !endDate) return 0;
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const today = new Date();
+
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+
+    const effectiveStart = start.getTime() > today.getTime() ? start : today;
+    const diffMs = end.getTime() - effectiveStart.getTime();
+    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
+
+    return Math.max(days, 0);
+  })();
+
+  const hasBudget = budgetLimit > 0;
+  const periodLabel = period ?? 'Monthly';
 
   return (
     <LinearGradient colors={colors.gradients.surface} style={styles.budgetCard}>
       <View style={styles.budgetHeader}>
-        <Text style={styles.budgetTitle}>Monthly Budget</Text>
-        <Text style={styles.budgetPercent}>{BUDGET_PERCENT}% Used</Text>
+        <Text style={styles.budgetTitle}>{periodLabel} Budget</Text>
+        <Text style={styles.budgetPercent}>{budgetPercent}% Used</Text>
       </View>
 
       <View style={styles.budgetInner}>
         <View style={styles.budgetSpendingRow}>
           <Text style={styles.budgetSpendingLabel}>Spending Limit</Text>
           <Text style={styles.budgetSpendingValue}>
-            ₱{BUDGET_SPENT.toLocaleString()}{' '}
-            <Text style={styles.budgetSpendingTotal}>of ₱{BUDGET_LIMIT.toLocaleString()}</Text>
+            ₱{budgetSpent.toLocaleString('en-PH', { minimumFractionDigits: 2 })}{' '}
+            <Text style={styles.budgetSpendingTotal}>
+              of ₱{budgetLimit.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+            </Text>
           </Text>
         </View>
+
+        {items.length > 0 && (
+          <View style={styles.budgetBreakdownList}>
+            {items.map((item) => (
+              <View key={item.id} style={styles.budgetBreakdownRow}>
+                <Text style={styles.budgetBreakdownCategory}>{item.category}</Text>
+                <Text style={styles.budgetBreakdownAmount}>
+                  ₱{item.amount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
 
         <View style={styles.progressBarBg}>
           <LinearGradient
             colors={colors.gradients.success}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            style={[styles.progressBarFill, { width: `${BUDGET_PERCENT}%` }]}
+            style={[styles.progressBarFill, { width: `${budgetPercent}%` }]}
           />
         </View>
 
-        <Text style={styles.budgetRemainingText}>
-          You have ₱{BUDGET_REMAINING.toLocaleString()} remaining for the next {DAYS_REMAINING} days.
-        </Text>
+        {hasBudget ? (
+          <Text style={styles.budgetRemainingText}>
+            You have ₱{budgetRemaining.toLocaleString('en-PH', { minimumFractionDigits: 2 })} remaining for the next{' '}
+            {computedDaysRemaining} days.
+          </Text>
+        ) : (
+          <Text style={styles.budgetRemainingText}>No active budget yet. Create one from the Budget sheet.</Text>
+        )}
       </View>
     </LinearGradient>
   );

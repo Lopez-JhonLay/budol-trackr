@@ -53,6 +53,12 @@ export const createHomeStyles = (colors: ColorScheme) =>
       color: colors.text,
       letterSpacing: -1,
     },
+    balanceMeta: {
+      fontSize: 13,
+      color: colors.textMuted,
+      marginTop: 6,
+      fontStyle: 'italic',
+    },
     budgetCard: {
       marginHorizontal: 24,
       marginTop: 20,
@@ -105,6 +111,28 @@ export const createHomeStyles = (colors: ColorScheme) =>
     budgetSpendingTotal: {
       fontWeight: '400',
       color: colors.textMuted,
+    },
+    budgetBreakdownList: {
+      marginBottom: 14,
+      gap: 10,
+    },
+    budgetBreakdownRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingBottom: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    budgetBreakdownCategory: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.textMuted,
+    },
+    budgetBreakdownAmount: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.text,
     },
     progressBarBg: {
       height: 10,

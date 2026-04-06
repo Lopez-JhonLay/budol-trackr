@@ -11,6 +11,18 @@ const schema = defineSchema({
     accountType: v.string(),
     balance: v.number(),
   }).index('by_user', ['userId']),
+  budgets: defineTable({
+    userId: v.id('users'),
+    period: v.union(v.literal('Weekly'), v.literal('Monthly')),
+    category: v.string(),
+    amount: v.number(),
+    accountId: v.id('accounts'),
+    startDate: v.string(),
+    endDate: v.string(),
+    createdAt: v.number(),
+  })
+    .index('by_user', ['userId'])
+    .index('by_user_period', ['userId', 'period']),
 });
 
 export default schema;
