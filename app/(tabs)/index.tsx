@@ -1,12 +1,11 @@
 import { createHomeStyles } from '@/assets/styles/home.styles';
 import AddBudgetSheet from '@/components/AddBudgetSheet';
 import AddExpenseSheet from '@/components/AddExpenseSheet';
-import MonthlyBudget from '@/components/MonthlyBudget';
+import BudgetCard from '@/components/BudgetCard';
 import RecentActivity from '@/components/RecentActivity';
 import { api } from '@/convex/_generated/api';
 import { useTheme } from '@/hooks/useTheme';
 import { getFormattedDate, getGreeting } from '@/lib/utils';
-import { useAuthActions } from '@convex-dev/auth/react';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from 'convex/react';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -19,7 +18,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 export default function HomeScreen() {
   const { colors } = useTheme();
   const styles = createHomeStyles(colors);
-  const { signOut } = useAuthActions();
   const user = useQuery(api.users.currentUser);
   const budgetSetting = useQuery(api.budgets.currentSetting);
   const [showExpenseSheet, setShowExpenseSheet] = useState(false);
@@ -83,15 +81,16 @@ export default function HomeScreen() {
         <View style={styles.accountDivider} />
 
         <LinearGradient colors={colors.gradients.surface} style={styles.balanceCard}>
-          <Text style={styles.balanceLabel}>{budgetSetting?.period ?? 'Monthly'} Budget</Text>
+          <Text style={styles.balanceLabel}>Balance</Text>
           <Text style={styles.balanceAmount}>
             ₱ {(budgetSetting?.amount ?? 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
           </Text>
           <Text style={styles.balanceMeta}>{cycleEndsText}</Text>
         </LinearGradient>
 
-        <MonthlyBudget
-          amount={budgetSetting?.amount ?? 0}
+        <BudgetCard
+          amount={budgetSetting?.totalLimit ?? 0}
+          spent={budgetSetting?.spent ?? 0}
           period={budgetSetting?.period ?? null}
           startDate={budgetSetting?.startDate}
           endDate={budgetSetting?.endDate}

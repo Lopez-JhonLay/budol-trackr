@@ -23,6 +23,16 @@ const schema = defineSchema({
   })
     .index('by_user', ['userId'])
     .index('by_user_period', ['userId', 'period']),
+  expenses: defineTable({
+    userId: v.id('users'),
+    category: v.string(),
+    amount: v.number(),
+    budgetId: v.id('budgets'),
+    note: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index('by_user', ['userId'])
+    .index('by_user_category', ['userId', 'category']),
 });
 
 export default schema;

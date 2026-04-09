@@ -1,69 +1,86 @@
 import { createHomeStyles } from '@/assets/styles/home.styles';
+import { api } from '@/convex/_generated/api';
 import { useTheme } from '@/hooks/useTheme';
 import { Ionicons } from '@expo/vector-icons';
+import { useQuery } from 'convex/react';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import { Text, TouchableOpacity, View } from 'react-native';
 
-const MOCK_ACTIVITIES = [
-  {
-    id: '1',
-    title: 'Grocery Market',
-    date: 'Oct 24, 2023 • 2:30 PM',
-    amount: -1250,
-    icon: 'cart' as const,
-    gradient: 'primary' as const,
-  },
-  {
-    id: '2',
-    title: 'Salary Deposit',
-    date: 'Oct 23, 2023 • 9:00 AM',
-    amount: 45000,
-    icon: 'cash' as const,
-    gradient: 'success' as const,
-  },
-  {
-    id: '3',
-    title: 'Starbucks Coffee',
-    date: 'Oct 22, 2023 • 10:15 AM',
-    amount: -245,
-    icon: 'cafe' as const,
-    gradient: 'warning' as const,
-  },
-];
+const CATEGORY_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
+  Food: 'restaurant',
+  Transport: 'car',
+  Shopping: 'bag',
+  Bills: 'receipt',
+  Entertainment: 'game-controller',
+  Health: 'medkit',
+  Other: 'ellipsis-horizontal',
+};
+
+const formatTime12h = (ts: number) => {
+  const d = new Date(ts);
+  const h = d.getHours();
+  const m = String(d.getMinutes()).padStart(2, '0');
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const displayH = h % 12 || 12;
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} • ${displayH}:${m} ${ampm}`;
+};
 
 const RecentActivity = () => {
   const { colors } = useTheme();
   const styles = createHomeStyles(colors);
+  const transactions = useQuery(api.transactions.recent) ?? [];
+  const router = useRouter();
 
   return (
     <View style={styles.activitySection}>
       <View style={styles.activityHeader}>
         <Text style={styles.activityTitle}>Recent Activity</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push('/(tabs)/HistoryScreen')}>
           <Text style={styles.activityViewAll}>View All</Text>
         </TouchableOpacity>
       </View>
 
       <LinearGradient colors={colors.gradients.surface} style={styles.activityCard}>
-        {MOCK_ACTIVITIES.map((item, index) => (
-          <View
-            key={item.id}
-            style={[styles.activityItem, index < MOCK_ACTIVITIES.length - 1 && styles.activityItemBorder]}
-          >
-            <LinearGradient colors={colors.gradients[item.gradient]} style={styles.activityIcon}>
-              <Ionicons name={item.icon} size={18} color="#fff" />
-            </LinearGradient>
+        {transactions.length === 0 ? (
+          <Text style={{ color: colors.textMuted, fontSize: 14, textAlign: 'center', paddingVertical: 16 }}>
+            No recent activity yet.
+          </Text>
+        ) : (
+          transactions.map((item, index) => {
+            const isExpense = item.type === 'expense';
+            const icon: keyof typeof Ionicons.glyphMap = isExpense
+              ? (CATEGORY_ICONS[item.title] ?? 'ellipsis-horizontal')
+              : 'wallet';
+            const gradient = isExpense ? 'primary' : 'success';
 
-            <View style={styles.activityInfo}>
-              <Text style={styles.activityItemTitle}>{item.title}</Text>
-              <Text style={styles.activityItemDate}>{item.date}</Text>
-            </View>
+            return (
+              <View
+                key={item.id}
+                style={[styles.activityItem, index < transactions.length - 1 && styles.activityItemBorder]}
+              >
+                <LinearGradient colors={colors.gradients[gradient]} style={styles.activityIcon}>
+                  <Ionicons name={icon} size={18} color="#fff" />
+                </LinearGradient>
 
-            <Text style={[styles.activityAmount, item.amount > 0 ? styles.activityAmountPositive : styles.activityAmountNegative]}>
-              {item.amount > 0 ? '+ ' : '- '}₱{Math.abs(item.amount).toLocaleString()}.00
-            </Text>
-          </View>
-        ))}
+                <View style={styles.activityInfo}>
+                  <Text style={styles.activityItemTitle}>{item.title}</Text>
+                  <Text style={styles.activityItemDate}>{formatTime12h(item.createdAt)}</Text>
+                </View>
+
+                <Text
+                  style={[
+                    styles.activityAmount,
+                    isExpense ? styles.activityAmountNegative : styles.activityAmountPositive,
+                  ]}
+                >
+                  {isExpense ? '- ' : '+ '}₱{item.amount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                </Text>
+              </View>
+            );
+          })
+        )}
       </LinearGradient>
     </View>
   );

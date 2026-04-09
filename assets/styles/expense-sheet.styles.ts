@@ -112,4 +112,48 @@ export const createExpenseSheetStyles = (colors: ColorScheme) =>
       fontWeight: '700',
       color: '#FFFFFF',
     },
+    alertOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 24,
+    },
+    alertCard: {
+      backgroundColor: colors.surface,
+      borderRadius: 20,
+      padding: 24,
+      width: '100%',
+      alignItems: 'center',
+    },
+    alertIconWrap: {
+      marginBottom: 12,
+    },
+    alertTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.text,
+      marginBottom: 8,
+      textAlign: 'center',
+    },
+    alertMessage: {
+      fontSize: 14,
+      color: colors.textMuted,
+      textAlign: 'center',
+      marginBottom: 20,
+    },
+    alertButton: {
+      borderRadius: 14,
+      overflow: 'hidden',
+      width: '100%',
+    },
+    alertButtonGradient: {
+      paddingVertical: 14,
+      alignItems: 'center',
+    },
+    alertButtonText: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: '#FFFFFF',
+    },
   });

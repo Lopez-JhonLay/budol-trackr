@@ -74,7 +74,7 @@ export default function AddBudgetSheet({
       end.setDate(start.getDate() + 6);
     } else {
       end.setMonth(start.getMonth() + 1);
-      end.setDate(end.getDate() - 1);
+      end.setDate(end.getDate());
     }
 
     const formatter = new Intl.DateTimeFormat('en-PH', {
@@ -270,9 +270,7 @@ export default function AddBudgetSheet({
             </View>
           )}
 
-          {isPeriodLocked && (
-            <Text style={styles.lockedHint}>Budget range is locked because a budget is already set above 0.</Text>
-          )}
+          {isPeriodLocked && <Text style={styles.lockedHint}>Active budgets.</Text>}
 
           <Text style={styles.label}>Category</Text>
           <View style={styles.categoryRow}>

@@ -1,11 +1,14 @@
 import { createExpenseSheetStyles, SHEET_HEIGHT } from '@/assets/styles/expense-sheet.styles';
+import { api } from '@/convex/_generated/api';
 import { useTheme } from '@/hooks/useTheme';
 import { Ionicons } from '@expo/vector-icons';
+import { useMutation, useQuery } from 'convex/react';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback, useEffect, useState } from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   StyleSheet,
@@ -16,8 +19,6 @@ import {
 } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
-const CATEGORIES = ['Food', 'Transport', 'Shopping', 'Bills', 'Entertainment', 'Health', 'Other'];
-
 interface AddExpenseSheetProps {
   visible: boolean;
   onClose: () => void;
@@ -26,12 +27,25 @@ interface AddExpenseSheetProps {
 export default function AddExpenseSheet({ visible, onClose }: AddExpenseSheetProps) {
   const { colors } = useTheme();
   const styles = createExpenseSheetStyles(colors);
+  const addExpense = useMutation(api.expenses.add);
+  const budgetSetting = useQuery(api.budgets.currentSetting);
+  const budgetCategories = budgetSetting?.items?.map((item) => item.category) ?? [];
 
   const translateY = useSharedValue(SHEET_HEIGHT);
   const backdropOpacity = useSharedValue(0);
 
   const [category, setCategory] = useState('');
   const [amount, setAmount] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [alertState, setAlertState] = useState({ visible: false, title: '', message: '' });
+
+  const openAlert = useCallback((title: string, message: string) => {
+    setAlertState({ visible: true, title, message });
+  }, []);
+
+  const closeAlert = useCallback(() => {
+    setAlertState((current) => ({ ...current, visible: false }));
+  }, []);
 
   const resetForm = useCallback(() => {
     setCategory('');
@@ -63,10 +77,31 @@ export default function AddExpenseSheet({ visible, onClose }: AddExpenseSheetPro
     opacity: backdropOpacity.value,
   }));
 
-  const handleSubmit = () => {
-    if (!category || !amount) return;
-    // TODO: save expense to backend
-    close();
+  const handleSubmit = async () => {
+    if (!category || !amount || isSaving) return;
+
+    const parsed = parseFloat(amount);
+    if (isNaN(parsed) || parsed <= 0) {
+      openAlert('Invalid amount', 'Please enter a valid amount greater than 0.');
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      await addExpense({ category, amount: parsed });
+      close();
+    } catch (error: any) {
+      const msg = String(error?.message ?? '').toLowerCase();
+      if (msg.includes('exceeds')) {
+        openAlert('Over Budget', `You don't have enough remaining budget for ${category} to cover this expense.`);
+      } else if (msg.includes('no active budget')) {
+        openAlert('No Budget Set', `There's no active budget for ${category}. Set one first.`);
+      } else {
+        openAlert('Unable to save expense', 'Something went wrong. Please try again.');
+      }
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (!visible) return null;
@@ -76,6 +111,23 @@ export default function AddExpenseSheet({ visible, onClose }: AddExpenseSheetPro
       style={{ ...StyleSheet.absoluteFillObject, zIndex: 100 }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      <Modal visible={alertState.visible} transparent animationType="fade" onRequestClose={closeAlert}>
+        <Pressable style={styles.alertOverlay} onPress={closeAlert}>
+          <Pressable style={styles.alertCard} onPress={() => {}}>
+            <View style={styles.alertIconWrap}>
+              <Ionicons name="alert-circle" size={24} color={colors.danger} />
+            </View>
+            <Text style={styles.alertTitle}>{alertState.title}</Text>
+            <Text style={styles.alertMessage}>{alertState.message}</Text>
+            <TouchableOpacity style={styles.alertButton} activeOpacity={0.85} onPress={closeAlert}>
+              <LinearGradient colors={colors.gradients.primary} style={styles.alertButtonGradient}>
+                <Text style={styles.alertButtonText}>Okay</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
       <Animated.View style={[styles.backdrop, backdropStyle]}>
         <Pressable style={{ flex: 1 }} onPress={close} />
       </Animated.View>
@@ -91,17 +143,25 @@ export default function AddExpenseSheet({ visible, onClose }: AddExpenseSheetPro
         </View>
 
         <Text style={styles.label}>Category</Text>
-        <View style={styles.categoryRow}>
-          {CATEGORIES.map((cat) => (
-            <TouchableOpacity
-              key={cat}
-              style={[styles.categoryChip, category === cat && styles.categoryChipSelected]}
-              onPress={() => setCategory(cat)}
-            >
-              <Text style={[styles.categoryChipText, category === cat && styles.categoryChipTextSelected]}>{cat}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        {budgetCategories.length > 0 ? (
+          <View style={styles.categoryRow}>
+            {budgetCategories.map((cat) => (
+              <TouchableOpacity
+                key={cat}
+                style={[styles.categoryChip, category === cat && styles.categoryChipSelected]}
+                onPress={() => setCategory(cat)}
+              >
+                <Text style={[styles.categoryChipText, category === cat && styles.categoryChipTextSelected]}>
+                  {cat}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        ) : (
+          <View style={styles.categoryRow}>
+            <Text style={{ color: colors.textMuted, fontSize: 14 }}>No budget categories set. Add a budget first.</Text>
+          </View>
+        )}
 
         <Text style={styles.label}>Amount</Text>
         <TextInput
@@ -113,9 +173,14 @@ export default function AddExpenseSheet({ visible, onClose }: AddExpenseSheetPro
           onChangeText={setAmount}
         />
 
-        <TouchableOpacity style={styles.submitButton} activeOpacity={0.8} onPress={handleSubmit}>
+        <TouchableOpacity
+          style={[styles.submitButton, (isSaving || budgetCategories.length === 0) && { opacity: 0.55 }]}
+          activeOpacity={0.8}
+          onPress={handleSubmit}
+          disabled={isSaving || budgetCategories.length === 0}
+        >
           <LinearGradient colors={colors.gradients.primary} style={styles.submitGradient}>
-            <Text style={styles.submitText}>Save</Text>
+            <Text style={styles.submitText}>{isSaving ? 'Saving...' : 'Save'}</Text>
           </LinearGradient>
         </TouchableOpacity>
       </Animated.View>

@@ -3,8 +3,9 @@ import { useTheme } from '@/hooks/useTheme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Text, View } from 'react-native';
 
-interface MonthlyBudgetProps {
+interface BudgetCardProps {
   amount: number;
+  spent: number;
   period: 'Weekly' | 'Monthly' | null;
   startDate?: string;
   endDate?: string;
@@ -15,10 +16,10 @@ interface MonthlyBudgetProps {
   }>;
 }
 
-const MonthlyBudget = ({ amount, period, startDate, endDate, items }: MonthlyBudgetProps) => {
+const BudgetCard = ({ amount, spent, period, startDate, endDate, items }: BudgetCardProps) => {
   const { colors } = useTheme();
   const styles = createHomeStyles(colors);
-  const budgetSpent = 0;
+  const budgetSpent = spent;
   const budgetLimit = amount;
   const budgetRemaining = Math.max(budgetLimit - budgetSpent, 0);
   const budgetPercent = budgetLimit > 0 ? Math.min(Math.round((budgetSpent / budgetLimit) * 100), 100) : 0;
@@ -97,4 +98,4 @@ const MonthlyBudget = ({ amount, period, startDate, endDate, items }: MonthlyBud
   );
 };
 
-export default MonthlyBudget;
+export default BudgetCard;
